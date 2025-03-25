@@ -1,0 +1,21 @@
+def calculate_heat_transfer(thermal_conductivity, area, temperature_difference, thickness):
+    # Q = (k * A * ΔT) / L
+    return (thermal_conductivity * area * temperature_difference) / thickness
+
+def main():
+    print("Welcome to the Heat Transfer Calculation Program")
+    
+    # Get input from the user
+    thermal_conductivity = float(input("Enter the thermal conductivity (in W/m·K): "))
+    area = float(input("Enter the cross-sectional area (in m²): "))
+    temperature_difference = float(input("Enter the temperature difference (in °C or K): "))
+    thickness = float(input("Enter the thickness of the material (in meters): "))
+    
+    # Calculate the rate of heat transfer
+    heat_transfer = calculate_heat_transfer(thermal_conductivity, area, temperature_difference, thickness)
+    
+    # Display results
+    print(f"The rate of heat transfer is: {heat_transfer} Watts (W)")
+
+if __name__ == "__main__":
+    main()
