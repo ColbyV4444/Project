@@ -1,0 +1,22 @@
+def calculate_pressure_loss(friction_factor, length, diameter, density, velocity):
+    # ΔP = f * (L/D) * (ρ * v² / 2)
+    return friction_factor * (length / diameter) * (density * velocity**2 / 2)
+
+def main():
+    print("Welcome to the Pressure Loss Calculation Program")
+    
+    # Get input from the user
+    friction_factor = float(input("Enter the Darcy friction factor (dimensionless): "))
+    length = float(input("Enter the length of the pipe (in meters): "))
+    diameter = float(input("Enter the diameter of the pipe (in meters): "))
+    density = float(input("Enter the density of the fluid (in kg/m³): "))
+    velocity = float(input("Enter the velocity of the fluid (in m/s): "))
+    
+    # Calculate pressure loss
+    pressure_loss = calculate_pressure_loss(friction_factor, length, diameter, density, velocity)
+    
+    # Display results
+    print(f"The pressure loss in the pipe is: {pressure_loss} Pascals (Pa)")
+
+if __name__ == "__main__":
+    main()
