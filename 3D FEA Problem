@@ -1,0 +1,97 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import spsolve
+
+# Given parameters
+E = 210e9  # Young's Modulus in Pa
+nu = 0.3   # Poisson's Ratio
+L = 1.0    # Length of the solid in meters
+W = 0.5    # Width of the solid in meters
+H = 0.3    # Height of the solid in meters
+n_elements_x = 4  # Number of elements in x-direction
+n_elements_y = 2  # Number of elements in y-direction
+n_elements_z = 3  # Number of elements in z-direction
+
+# Material Properties Matrix (3D)
+D = E / ((1 + nu) * (1 - 2 * nu)) * np.array([
+    [1 - nu, nu, nu, 0, 0, 0],
+    [nu, 1 - nu, nu, 0, 0, 0],
+    [nu, nu, 1 - nu, 0, 0, 0],
+    [0, 0, 0, (1 - 2 * nu) / 2, 0, 0],
+    [0, 0, 0, 0, (1 - 2 * nu) / 2, 0],
+    [0, 0, 0, 0, 0, (1 - 2 * nu) / 2]
+])
+
+# Number of nodes and degrees of freedom
+n_nodes_x = n_elements_x + 1
+n_nodes_y = n_elements_y + 1
+n_nodes_z = n_elements_z + 1
+n_nodes = n_nodes_x * n_nodes_y * n_nodes_z
+n_dof = 3 * n_nodes  # 3 degrees of freedom (ux, uy, uz) per node
+
+# Element stiffness matrix for hexahedral elements (3D)
+def element_stiffness(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, x5, y5, z5, x6, y6, z6, x7, y7, z7, x8, y8, z8, D):
+    # Placeholder for the actual stiffness matrix calculation
+    # Normally you would use numerical integration (like Gauss quadrature) for this.
+    Ke = np.zeros((24, 24))  # Placeholder for the element stiffness matrix
+    return Ke
+
+# Assemble the global stiffness matrix
+K_global = np.zeros((n_dof, n_dof))
+
+# Loop over all elements and assemble the global stiffness matrix
+for i in range(n_elements_x):
+    for j in range(n_elements_y):
+        for k in range(n_elements_z):
+            # Coordinates of the eight nodes of the element (hexahedral element)
+            x1, y1, z1 = i * (L / n_elements_x), j * (W / n_elements_y), k * (H / n_elements_z)
+            x2, y2, z2 = (i + 1) * (L / n_elements_x), j * (W / n_elements_y), k * (H / n_elements_z)
+            x3, y3, z3 = (i + 1) * (L / n_elements_x), (j + 1) * (W / n_elements_y), k * (H / n_elements_z)
+            x4, y4, z4 = i * (L / n_elements_x), (j + 1) * (W / n_elements_y), k * (H / n_elements_z)
+            x5, y5, z5 = i * (L / n_elements_x), j * (W / n_elements_y), (k + 1) * (H / n_elements_z)
+            x6, y6, z6 = (i + 1) * (L / n_elements_x), j * (W / n_elements_y), (k + 1) * (H / n_elements_z)
+            x7, y7, z7 = (i + 1) * (L / n_elements_x), (j + 1) * (W / n_elements_y), (k + 1) * (H / n_elements_z)
+            x8, y8, z8 = i * (L / n_elements_x), (j + 1) * (W / n_elements_y), (k + 1) * (H / n_elements_z)
+            
+            # Calculate the element stiffness matrix (using the function defined above)
+            Ke = element_stiffness(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, x5, y5, z5, x6, y6, z6, x7, y7, z7, x8, y8, z8, D)
+            
+            # Assembly into the global matrix (this part needs proper node indexing)
+            pass  # Placeholder for assembly process
+
+# Apply boundary conditions: fix left, bottom, and back boundaries (u = 0)
+fixed_dof = []  # List of degrees of freedom corresponding to fixed boundary conditions
+
+# Apply the pressure load on the front face
+P = np.zeros(n_dof)
+pressure = 1e4  # Example pressure value (Pa)
+for j in range(n_nodes_y):
+    for k in range(n_nodes_z):
+        node_front = (n_nodes_x * (n_nodes_y - 1) * k) + (n_nodes_x * (n_nodes_y - 1)) + j
+        P[3 * node_front + 2] = pressure  # Apply pressure in z-direction (front face)
+
+# Reduce the system by removing fixed DOFs
+free_dof = np.setdiff1d(np.arange(n_dof), fixed_dof)
+K_reduced = K_global[free_dof, :][:, free_dof]
+P_reduced = P[free_dof]
+
+# Solve for displacements
+displacements = np.zeros(n_dof)
+displacements[free_dof] = spsolve(csr_matrix(K_reduced), P_reduced)
+
+# Post-processing: Displacements (for visualization)
+displacements_x = displacements[::3]  # x-component of displacement
+displacements_y = displacements[1::3]  # y-component of displacement
+displacements_z = displacements[2::3]  # z-component of displacement
+
+# Visualization (simplified)
+# Here we would typically plot slices of the displacement field. For simplicity, let's visualize the displacement in the z-direction
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+X, Y, Z = np.meshgrid(np.linspace(0, L, n_nodes_x), np.linspace(0, W, n_nodes_y), np.linspace(0, H, n_nodes_z))
+ax.quiver(X, Y, Z, displacements_x.reshape((n_nodes_y, n_nodes_x, n_nodes_z)),
+          displacements_y.reshape((n_nodes_y, n_nodes_x, n_nodes_z)),
+          displacements_z.reshape((n_nodes_y, n_nodes_x, n_nodes_z)), length=0.01)
+ax.set_title("Displacement Field (3D)")
+plt.show()
