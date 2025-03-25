@@ -1,0 +1,19 @@
+def calculate_torque(moment_of_inertia, angular_acceleration):
+    # Torque = Moment of Inertia * Angular Acceleration
+    return moment_of_inertia * angular_acceleration
+
+def main():
+    print("Welcome to the Torque Calculation Program")
+    
+    # Get input from the user
+    moment_of_inertia = float(input("Enter the moment of inertia (in kg·m²): "))
+    angular_acceleration = float(input("Enter the angular acceleration (in rad/s²): "))
+    
+    # Calculate torque
+    torque = calculate_torque(moment_of_inertia, angular_acceleration)
+    
+    # Display results
+    print(f"The required torque to achieve the angular acceleration is: {torque} Newton-meters (N·m)")
+
+if __name__ == "__main__":
+    main()
