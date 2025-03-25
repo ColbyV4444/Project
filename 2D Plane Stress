@@ -1,0 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import spsolve
+
+# Given parameters
+E = 210e9  # Young's Modulus in Pa
+nu = 0.3   # Poisson's Ratio
+L = 1.0    # Length of the plate in meters
+W = 0.5    # Width of the plate in meters
+n_elements_x = 5  # Number of elements in x-direction
+n_elements_y = 3  # Number of elements in y-direction
+
+# Material Properties Matrix (Plane Stress)
+D = E / (1 - nu**2) * np.array([[1, nu, 0],
+                                 [nu, 1, 0],
+                                 [0, 0, (1 - nu) / 2]])
+
+# Number of nodes and degrees of freedom
+n_nodes_x = n_elements_x + 1
+n_nodes_y = n_elements_y + 1
+n_nodes = n_nodes_x * n_nodes_y
+n_dof = 2 * n_nodes  # 2 degrees of freedom (ux, uy) per node
+
+# Element stiffness matrix for quadrilateral elements (plane stress)
+def element_stiffness(x1, y1, x2, y2, x3, y3, x4, y4, D):
+    # Bending matrix for the 4-node quadrilateral element
+    # Integration points (2x2 quadrature)
+    # Placeholder for simplicity (actual matrix would be computed via numerical integration)
+    Ke = np.zeros((8, 8))  # Placeholder for the stiffness matrix
+    return Ke
+
+# Assemble the global stiffness matrix
+K_global = np.zeros((n_dof, n_dof))
+
+# Loop over all elements and assemble the global stiffness matrix
+for i in range(n_elements_x):
+    for j in range(n_elements_y):
+        # Coordinates of the four nodes of the element
+        # For simplicity, this example assumes linear nodal positions (rectangular grid)
+        x1, y1 = i * (L / n_elements_x), j * (W / n_elements_y)
+        x2, y2 = (i + 1) * (L / n_elements_x), j * (W / n_elements_y)
+        x3, y3 = (i + 1) * (L / n_elements_x), (j + 1) * (W / n_elements_y)
+        x4, y4 = i * (L / n_elements_x), (j + 1) * (W / n_elements_y)
+        
+        # Calculate the element stiffness matrix (using the function defined above)
+        Ke = element_stiffness(x1, y1, x2, y2, x3, y3, x4, y4, D)
+        
+        # Assembly into the global matrix (placeholder)
+        # Note: A real implementation would map element nodes to global DOFs here.
+        pass  # Placeholder for assembling process
+
+# Apply boundary conditions: fix left boundary (u = 0)
+# Boundary conditions for left edge: (displacements u_x = 0, u_y = 0)
+fixed_dof = []  # DOFs corresponding to the fixed boundary conditions
+
+# Apply the load (uniform pressure on the right boundary)
+P = np.zeros(n_dof)
+pressure = 1e3  # Example pressure value
+for j in range(n_nodes_y):
+    node_right = j * n_nodes_x + (n_nodes_x - 1)
+    P[2 * node_right] = pressure  # Apply pressure in x-direction
+
+# Reduce the system by removing fixed DOFs
+free_dof = np.setdiff1d(np.arange(n_dof), fixed_dof)
+K_reduced = K_global[free_dof, :][:, free_dof]
+P_reduced = P[free_dof]
+
+# Solve for displacements
+displacements = np.zeros(n_dof)
+displacements[free_dof] = spsolve(csr_matrix(K_reduced), P_reduced)
+
+# Post-processing: Displacements
+displacements_x = displacements[::2]  # x-component of displacement
+displacements_y = displacements[1::2]  # y-component of displacement
+
+# Plotting the displacement field
+X, Y = np.meshgrid(np.linspace(0, L, n_nodes_x), np.linspace(0, W, n_nodes_y))
+plt.figure(figsize=(8, 6))
+plt.quiver(X, Y, displacements_x.reshape((n_nodes_y, n_nodes_x)),
+           displacements_y.reshape((n_nodes_y, n_nodes_x)), scale=1, scale_units='xy', angles='xy')
+plt.title("Displacement Field")
+plt.xlabel("X [m]")
+plt.ylabel("Y [m]")
+plt.grid(True)
+plt.show()
