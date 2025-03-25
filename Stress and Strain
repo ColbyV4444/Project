@@ -1,0 +1,27 @@
+def calculate_stress(force, area):
+    # Stress = Force / Area
+    return force / area
+
+def calculate_strain(change_in_length, original_length):
+    # Strain = Change in Length / Original Length
+    return change_in_length / original_length
+
+def main():
+    print("Welcome to the Stress and Strain Calculator")
+
+    # Get input from the user
+    force = float(input("Enter the applied force (in Newtons): "))
+    area = float(input("Enter the cross-sectional area of the material (in square meters): "))
+    change_in_length = float(input("Enter the change in length of the material (in meters): "))
+    original_length = float(input("Enter the original length of the material (in meters): "))
+    
+    # Calculate stress and strain
+    stress = calculate_stress(force, area)
+    strain = calculate_strain(change_in_length, original_length)
+    
+    # Display results
+    print(f"Stress on the material: {stress} Pascals (Pa)")
+    print(f"Strain on the material: {strain}")
+
+if __name__ == "__main__":
+    main()
